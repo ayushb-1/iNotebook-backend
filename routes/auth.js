@@ -18,7 +18,7 @@ router.post('/createuser',[
     body('email').isEmail(),
     body('password').isLength({min:5})
 ], async(req,res)=>{
-    
+    let success = false;
     // if there are errors 
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -28,8 +28,8 @@ router.post('/createuser',[
         
 //    if the user already exist
     let user = await User.findOne({email:req.body.email});
-    if(!user){
-        return res.status(400).json({error:"sorry user with this email already exist"});
+    if(user){
+        return res.status(400).json({success,error:"sorry user with this email already exist"});
     }
 
     // generating hashing password
@@ -48,8 +48,9 @@ router.post('/createuser',[
             id: user.id
         }
     }
-    const authToken=jwt.sign(data,JWT_SECRET);
-  res.json({authToken})
+    success=true;
+    const authtoken=jwt.sign(data,JWT_SECRET);
+  res.json({success,authtoken})
 
 } catch (error) {
         console.error(error.message);
@@ -66,6 +67,7 @@ router.post('/login',[
     body('password','Password cannont be blank').exists()
 ], async(req,res)=>{
     
+    let success=false;
     // if there are errors 
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -79,15 +81,17 @@ router.post('/login',[
         }
         const comparePass = await bcrypt.compare(password, user.password);
         if(!comparePass){
-            return res.status(400).json({error: "Please try to login with correct credentials"});
+            
+            return res.status(400).json({success,error: "Please try to login with correct credentials"});
         }
         const data={
         user:{
             id: user.id
         }
     }
-    const authToken=jwt.sign(data,JWT_SECRET);
-    res.json({authToken})
+    success=true;
+    const authtoken=jwt.sign(data,JWT_SECRET);
+    res.json({success,authtoken})
  
     } catch (error) {
         console.error(error.message);
